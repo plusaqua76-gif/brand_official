@@ -49,7 +49,7 @@ export const CartDrawer: React.FC = () => {
       <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col z-10 border-l border-[#EDE4DA]">
         
         {/* Header */}
-        <div className="p-5 border-b border-[#EDE4DA] flex items-center justify-between bg-[#FAF8F5]">
+        <div className="p-4 sm:p-5 border-b border-[#EDE4DA] flex items-center justify-between bg-[#FAF8F5]">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#C6A77D]" />
             <h2 className="font-serif text-lg font-bold text-[#171717]">
@@ -62,7 +62,7 @@ export const CartDrawer: React.FC = () => {
 
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-2 text-[#77716C] hover:text-[#171717] rounded-full hover:bg-white transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-[#77716C] hover:text-[#171717] rounded-full hover:bg-white transition-colors"
             aria-label="Cerrar bolsa"
           >
             <X className="w-5 h-5" />
@@ -183,10 +183,11 @@ export const CartDrawer: React.FC = () => {
 
                     {/* Quantity Stepper & Subtotal */}
                     <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center border border-[#EDE4DA] rounded bg-white">
+                      <div className="flex items-center border border-[#EDE4DA] rounded-lg bg-white overflow-hidden">
                         <button
+                          type="button"
                           onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                          className="px-2 py-1 text-xs text-[#77716C] hover:text-[#171717] transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-xs text-[#77716C] hover:text-[#171717] active:bg-[#FAF8F5] transition-colors"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -194,9 +195,10 @@ export const CartDrawer: React.FC = () => {
                           {item.quantity}
                         </span>
                         <button
+                          type="button"
                           onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
                           disabled={item.quantity >= maxStock}
-                          className="px-2 py-1 text-xs text-[#77716C] hover:text-[#171717] disabled:opacity-30 transition-colors"
+                          className="w-8 h-8 flex items-center justify-center text-xs text-[#77716C] hover:text-[#171717] disabled:opacity-30 active:bg-[#FAF8F5] transition-colors"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -222,7 +224,7 @@ export const CartDrawer: React.FC = () => {
 
         {/* Footer & Checkout Action */}
         {cart.length > 0 && (
-          <div className="p-5 border-t border-[#EDE4DA] bg-[#FAF8F5] space-y-4">
+          <div className="p-4 sm:p-5 pb-safe border-t border-[#EDE4DA] bg-[#FAF8F5] space-y-4">
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-[#77716C]">
                 <span>Subtotal de prendas</span>
@@ -239,8 +241,9 @@ export const CartDrawer: React.FC = () => {
             </div>
 
             <button
+              type="button"
               onClick={handleCheckoutClick}
-              className="w-full py-3.5 bg-[#25D366] hover:bg-[#20BA5A] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+              className="w-full min-h-[48px] py-3.5 bg-[#25D366] hover:bg-[#20BA5A] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
             >
               <MessageCircle className="w-4 h-4 fill-white" />
               <span>Finalizar Pedido por WhatsApp</span>
@@ -248,14 +251,16 @@ export const CartDrawer: React.FC = () => {
 
             <div className="flex items-center justify-between text-[11px] text-[#77716C]">
               <button
+                type="button"
                 onClick={() => setIsCartOpen(false)}
-                className="hover:text-[#171717] underline transition-colors"
+                className="hover:text-[#171717] underline transition-colors py-1"
               >
                 Seguir explorando
               </button>
               <button
+                type="button"
                 onClick={clearCart}
-                className="hover:text-red-600 transition-colors"
+                className="hover:text-red-600 transition-colors py-1"
               >
                 Vaciar bolsa
               </button>

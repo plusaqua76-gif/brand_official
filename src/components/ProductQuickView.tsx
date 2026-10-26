@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, ArrowRight, ShoppingBag, Eye, Heart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatCOP } from '../utils/formatters';
@@ -12,6 +12,9 @@ export const ProductQuickView: React.FC = () => {
     toggleWishlist,
   } = useStore();
 
+  const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
+  const [colorImage, setColorImage] = useState<string | null>(null);
+
   if (!quickViewProduct) return null;
 
   const product = quickViewProduct;
@@ -22,25 +25,43 @@ export const ProductQuickView: React.FC = () => {
     setQuickViewProduct(null);
   };
 
+  const handleColorClick = (colorName: string) => {
+    setSelectedColorName(colorName);
+    let matchedImg = product.colorImageMap?.[colorName];
+    if (!matchedImg && product.imageColorMap) {
+      const entry = Object.entries(product.imageColorMap).find(
+        ([_, name]) => name.toLowerCase() === colorName.toLowerCase()
+      );
+      if (entry) matchedImg = entry[0];
+    }
+    if (matchedImg) {
+      setColorImage(matchedImg);
+    }
+  };
+
+  const isCoverVid = !colorImage && product.coverMediaType === 'video' && Boolean(product.primaryMediaUrl || product.videoUrl);
+  const displayedImg = colorImage || product.images?.[0] || '/src/assets/images/fashion_enterizo_black_1792782858876.jpg';
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto"
       onClick={() => setQuickViewProduct(null)}
     >
       <div
-        className="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl border border-[#EDE4DA] relative"
+        className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#EDE4DA] relative my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => setQuickViewProduct(null)}
-          className="absolute top-3 right-3 z-10 p-2 bg-white/90 hover:bg-white text-[#171717] rounded-full shadow-xs"
+          className="absolute top-3 right-3 z-20 w-11 h-11 flex items-center justify-center bg-white/95 hover:bg-white text-[#171717] rounded-full shadow-md border border-[#EDE4DA] active:scale-95"
+          aria-label="Cerrar vista rápida"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
 
         <div className="grid grid-cols-1 sm:grid-cols-2">
           <div className="aspect-[3/4] bg-[#FAF8F5] relative overflow-hidden">
-            {product.coverMediaType === 'video' && (product.primaryMediaUrl || product.videoUrl) ? (
+            {isCoverVid ? (
               <video
                 src={product.primaryMediaUrl || product.videoUrl}
                 autoPlay
@@ -51,7 +72,7 @@ export const ProductQuickView: React.FC = () => {
               />
             ) : (
               <img
-                src={product.images?.[0] || '/src/assets/images/fashion_enterizo_black_1792782858876.jpg'}
+                src={displayedImg}
                 alt={product.name}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
@@ -74,7 +95,43 @@ export const ProductQuickView: React.FC = () => {
                 {product.description}
               </p>
 
-              <div className="mt-4 pt-3 border-t border-[#EDE4DA]">
+              {/* Colores disponibles */}
+              {product.colors && product.colors.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-[#EDE4DA]">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-[#171717] mb-1.5">
+                    <span>Colores disponibles:</span>
+                    <span className="text-[#C6A77D]">
+                      {selectedColorName || product.colors[0]?.name}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {product.colors.map((c) => {
+                      const isSelected = (selectedColorName || product.colors[0]?.name) === c.name;
+                      return (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => handleColorClick(c.name)}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border transition-all ${
+                            isSelected
+                              ? 'border-[#171717] bg-[#FAF8F5] font-bold text-[#171717]'
+                              : 'border-[#EDE4DA] text-[#77716C] hover:border-[#171717]'
+                          }`}
+                        >
+                          <span
+                            className="w-3 h-3 rounded-full border border-black/20"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          <span>{c.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Tallas disponibles */}
+              <div className="mt-3">
                 <span className="text-[11px] font-semibold text-[#171717] block mb-1.5">
                   Tallas disponibles:
                 </span>

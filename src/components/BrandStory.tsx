@@ -43,7 +43,7 @@ export const BrandStory: React.FC = () => {
               "En Cirleni Hernández creemos que cada mujer merece sentirse única, segura y auténtica. Nuestra moda está pensada para resaltar tu esencia, acompañarte en cada ocasión y convertir cada prenda en una expresión de tu personalidad."
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#EDE4DA]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#EDE4DA]">
               <div className="space-y-1">
                 <h4 className="font-serif text-base font-bold text-[#171717]">
                   Elegancia en cada detalle

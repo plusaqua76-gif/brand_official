@@ -105,6 +105,25 @@ export const ProductDetailModal: React.FC = () => {
     setIsCheckoutModalOpen(true);
   };
 
+  const handleColorSelect = (color: GarmentColor) => {
+    setSelectedColor(color);
+    let matchedImg = product.colorImageMap?.[color.name];
+    if (!matchedImg && product.imageColorMap) {
+      const entry = Object.entries(product.imageColorMap).find(
+        ([_, name]) => name.toLowerCase() === color.name.toLowerCase()
+      );
+      if (entry) matchedImg = entry[0];
+    }
+
+    if (matchedImg) {
+      const foundIdx = product.images.findIndex((img) => img === matchedImg);
+      if (foundIdx >= 0) {
+        setActiveImageIndex(foundIdx);
+      }
+      setViewMode('gallery');
+    }
+  };
+
   const handleShare = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href);
@@ -118,17 +137,17 @@ export const ProductDetailModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto"
       onClick={() => setSelectedProduct(null)}
     >
       <div
-        className="relative bg-white rounded-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#EDE4DA] my-auto"
+        className="relative bg-white sm:rounded-2xl max-w-5xl w-full min-h-screen sm:min-h-0 sm:max-h-[92vh] overflow-y-auto shadow-2xl border-0 sm:border border-[#EDE4DA] sm:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* Close Button (44x44px touch target) */}
         <button
           onClick={() => setSelectedProduct(null)}
-          className="absolute top-4 right-4 z-20 p-2.5 bg-white/90 hover:bg-white text-[#171717] rounded-full shadow-md border border-[#EDE4DA] transition-transform hover:scale-105"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 w-11 h-11 flex items-center justify-center bg-white/95 hover:bg-white text-[#171717] rounded-full shadow-md border border-[#EDE4DA] transition-transform active:scale-95"
           aria-label="Cerrar detalle"
         >
           <X className="w-5 h-5" />
@@ -309,7 +328,7 @@ export const ProductDetailModal: React.FC = () => {
                     return (
                       <button
                         key={c.name}
-                        onClick={() => setSelectedColor(c)}
+                        onClick={() => handleColorSelect(c)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                           isSelected
                             ? 'border-[#171717] bg-[#FAF8F5] text-[#171717] shadow-xs'
@@ -349,7 +368,7 @@ export const ProductDetailModal: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 gap-2">
                   {product.sizes.map((size) => {
                     const stock = getVariantStock(size);
                     const isAvailable = stock > 0;
@@ -358,16 +377,17 @@ export const ProductDetailModal: React.FC = () => {
                     return (
                       <button
                         key={size}
+                        type="button"
                         disabled={!isAvailable}
                         onClick={() => {
                           setSelectedSize(size);
                           setValidationError(null);
                         }}
-                        className={`py-2.5 rounded-lg text-xs font-bold transition-all relative ${
+                        className={`min-h-[44px] py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center relative active:scale-95 ${
                           !isAvailable
                             ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed line-through'
                             : isSelected
-                            ? 'bg-[#171717] text-white shadow-sm'
+                            ? 'bg-[#171717] text-white shadow-sm ring-2 ring-[#C6A77D]'
                             : 'bg-white hover:bg-[#FAF8F5] text-[#171717] border border-[#EDE4DA] hover:border-[#171717]'
                         }`}
                       >
@@ -391,9 +411,10 @@ export const ProductDetailModal: React.FC = () => {
                 <span className="text-xs font-semibold text-[#171717]">Cantidad:</span>
                 <div className="flex items-center border border-[#EDE4DA] rounded-lg bg-white overflow-hidden">
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="px-3 py-1.5 text-xs text-[#171717] hover:bg-[#FAF8F5] disabled:opacity-40 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center text-xs text-[#171717] hover:bg-[#FAF8F5] disabled:opacity-40 transition-colors"
                   >
                     -
                   </button>
@@ -401,9 +422,10 @@ export const ProductDetailModal: React.FC = () => {
                     {quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
                     disabled={quantity >= currentStock}
-                    className="px-3 py-1.5 text-xs text-[#171717] hover:bg-[#FAF8F5] disabled:opacity-40 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center text-xs text-[#171717] hover:bg-[#FAF8F5] disabled:opacity-40 transition-colors"
                   >
                     +
                   </button>
@@ -413,16 +435,18 @@ export const ProductDetailModal: React.FC = () => {
               {/* Primary Call to Action Buttons */}
               <div className="space-y-3 pt-2">
                 <button
+                  type="button"
                   onClick={handleAddToCart}
-                  className="w-full py-3.5 bg-[#171717] hover:bg-[#2A2A2A] text-white text-xs sm:text-sm uppercase tracking-wider font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group"
+                  className="w-full min-h-[48px] py-3.5 bg-[#171717] hover:bg-[#2A2A2A] text-white text-xs sm:text-sm uppercase tracking-wider font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group active:scale-[0.99]"
                 >
                   <ShoppingBag className="w-4 h-4 text-[#C6A77D]" />
                   <span>Agregar a la Bolsa</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleBuyNowWhatsApp}
-                  className="w-full py-3.5 bg-[#25D366] hover:bg-[#20BA5A] text-white text-xs sm:text-sm uppercase tracking-wider font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full min-h-[48px] py-3.5 bg-[#25D366] hover:bg-[#20BA5A] text-white text-xs sm:text-sm uppercase tracking-wider font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
                 >
                   <MessageCircle className="w-4 h-4 fill-white" />
                   <span>Finalizar Pedido por WhatsApp</span>

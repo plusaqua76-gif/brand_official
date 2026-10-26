@@ -40,6 +40,30 @@ export const AdminPanel: React.FC = () => {
   const [passcodeError, setPasscodeError] = useState(false);
   const [activeTab, setActiveTab] = useState<'products' | 'new-product' | 'settings'>('products');
 
+  // Constants for sizes and colors
+  const STANDARD_SIZES: GarmentSize[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const PRESET_COLORS: GarmentColor[] = [
+    { name: 'Negro', hex: '#171717' },
+    { name: 'Rojo', hex: '#DC2626' },
+    { name: 'Blanco', hex: '#FAF8F5' },
+    { name: 'Beige', hex: '#EDE4DA' },
+    { name: 'Champagne', hex: '#C6A77D' },
+    { name: 'Amarillo', hex: '#EAB308' },
+    { name: 'Mostaza', hex: '#CA8A04' },
+    { name: 'Azul Noche', hex: '#1E3A8A' },
+    { name: 'Verde Esmeralda', hex: '#0B4A34' },
+    { name: 'Vino Tinto', hex: '#7F1D1D' },
+    { name: 'Rosa Pastel', hex: '#F472B6' },
+    { name: 'Gris Plata', hex: '#94A3B8' },
+  ];
+
+  // Custom color inputs
+  const [newCustomColorName, setNewCustomColorName] = useState('');
+  const [newCustomColorHex, setNewCustomColorHex] = useState('#DC2626');
+  const [editCustomColorName, setEditCustomColorName] = useState('');
+  const [editCustomColorHex, setEditCustomColorHex] = useState('#DC2626');
+
   // Editing existing product state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editImageUrlInput, setEditImageUrlInput] = useState('');
@@ -62,6 +86,8 @@ export const AdminPanel: React.FC = () => {
     images: [],
     colors: [{ name: 'Negro', hex: '#171717' }],
     sizes: ['S', 'M', 'L'],
+    colorImageMap: {},
+    imageColorMap: {},
     material: 'Satén y crepé de seda',
     composition: '95% Poliéster, 5% Spandex',
     careInstructions: ['Lavado delicado a mano con agua fría'],
@@ -75,6 +101,109 @@ export const AdminPanel: React.FC = () => {
 
   // Settings form
   const [tempSettings, setTempSettings] = useState(storeSettings);
+
+  // Helper functions for Sizes, Colors and Image-Color mapping
+  const toggleSize = (size: GarmentSize, isEditing: boolean) => {
+    if (isEditing && editingProduct) {
+      const current = editingProduct.sizes || [];
+      const updated = current.includes(size)
+        ? current.filter((s) => s !== size)
+        : [...current, size];
+      setEditingProduct({ ...editingProduct, sizes: updated.length ? updated : [size] });
+    } else {
+      const current = (newProd.sizes as GarmentSize[]) || [];
+      const updated = current.includes(size)
+        ? current.filter((s) => s !== size)
+        : [...current, size];
+      setNewProd({ ...newProd, sizes: updated.length ? updated : [size] });
+    }
+  };
+
+  const addColorToProduct = (color: GarmentColor, isEditing: boolean) => {
+    if (!color.name.trim()) return;
+    if (isEditing && editingProduct) {
+      const current = editingProduct.colors || [];
+      if (!current.some((c) => c.name.toLowerCase() === color.name.trim().toLowerCase())) {
+        setEditingProduct({ ...editingProduct, colors: [...current, { name: color.name.trim(), hex: color.hex }] });
+        showNotification(`Color "${color.name}" añadido`);
+      } else {
+        showNotification(`El color "${color.name}" ya existe`);
+      }
+    } else {
+      const current = newProd.colors || [];
+      if (!current.some((c) => c.name.toLowerCase() === color.name.trim().toLowerCase())) {
+        setNewProd({ ...newProd, colors: [...current, { name: color.name.trim(), hex: color.hex }] });
+        showNotification(`Color "${color.name}" añadido`);
+      } else {
+        showNotification(`El color "${color.name}" ya existe`);
+      }
+    }
+  };
+
+  const removeColorFromProduct = (colorName: string, isEditing: boolean) => {
+    if (isEditing && editingProduct) {
+      const current = (editingProduct.colors || []).filter((c) => c.name !== colorName);
+      const newColorMap = { ...(editingProduct.colorImageMap || {}) };
+      delete newColorMap[colorName];
+      const newImgMap = { ...(editingProduct.imageColorMap || {}) };
+      Object.keys(newImgMap).forEach((k) => {
+        if (newImgMap[k] === colorName) delete newImgMap[k];
+      });
+      setEditingProduct({
+        ...editingProduct,
+        colors: current.length ? current : [{ name: 'Único', hex: '#171717' }],
+        colorImageMap: newColorMap,
+        imageColorMap: newImgMap,
+      });
+    } else {
+      const current = (newProd.colors || []).filter((c) => c.name !== colorName);
+      const newColorMap = { ...(newProd.colorImageMap || {}) };
+      delete newColorMap[colorName];
+      const newImgMap = { ...(newProd.imageColorMap || {}) };
+      Object.keys(newImgMap).forEach((k) => {
+        if (newImgMap[k] === colorName) delete newImgMap[k];
+      });
+      setNewProd({
+        ...newProd,
+        colors: current.length ? current : [{ name: 'Único', hex: '#171717' }],
+        colorImageMap: newColorMap,
+        imageColorMap: newImgMap,
+      });
+    }
+  };
+
+  const assignColorToImage = (imageUrl: string, colorName: string, isEditing: boolean) => {
+    if (isEditing && editingProduct) {
+      const imgMap = { ...(editingProduct.imageColorMap || {}) };
+      const colMap = { ...(editingProduct.colorImageMap || {}) };
+      if (!colorName) {
+        delete imgMap[imageUrl];
+      } else {
+        imgMap[imageUrl] = colorName;
+        colMap[colorName] = imageUrl;
+      }
+      setEditingProduct({
+        ...editingProduct,
+        imageColorMap: imgMap,
+        colorImageMap: colMap,
+      });
+    } else {
+      const imgMap = { ...(newProd.imageColorMap || {}) };
+      const colMap = { ...(newProd.colorImageMap || {}) };
+      if (!colorName) {
+        delete imgMap[imageUrl];
+      } else {
+        imgMap[imageUrl] = colorName;
+        colMap[colorName] = imageUrl;
+      }
+      setNewProd({
+        ...newProd,
+        imageColorMap: imgMap,
+        colorImageMap: colMap,
+      });
+    }
+    showNotification(colorName ? `Foto asignada al color "${colorName}"` : 'Color desasignado de la foto');
+  };
 
   // Helper for uploading 1 or more photos
   const handleMultiImageFiles = (
@@ -174,8 +303,10 @@ export const AdminPanel: React.FC = () => {
       isSale: Boolean(newProd.isSale),
       isBestseller: Boolean(newProd.isBestseller),
       images: imagesList.length > 0 ? imagesList : (videoUrl ? [videoUrl] : []),
-      colors: newProd.colors || [{ name: 'Negro', hex: '#171717' }],
-      sizes: (newProd.sizes as GarmentSize[]) || ['S', 'M', 'L'],
+      colors: newProd.colors && newProd.colors.length > 0 ? newProd.colors : [{ name: 'Negro', hex: '#171717' }],
+      sizes: newProd.sizes && newProd.sizes.length > 0 ? (newProd.sizes as GarmentSize[]) : ['S', 'M', 'L'],
+      colorImageMap: newProd.colorImageMap || {},
+      imageColorMap: newProd.imageColorMap || {},
       material: newProd.material || 'Tela premium',
       composition: newProd.composition || '100% Alta Calidad',
       careInstructions: newProd.careInstructions || ['Lavado delicado a mano'],
@@ -198,6 +329,8 @@ export const AdminPanel: React.FC = () => {
       images: [],
       colors: [{ name: 'Negro', hex: '#171717' }],
       sizes: ['S', 'M', 'L'],
+      colorImageMap: {},
+      imageColorMap: {},
       material: 'Satén y crepé de seda',
       composition: '95% Poliéster, 5% Spandex',
       careInstructions: ['Lavado delicado a mano con agua fría'],
@@ -224,6 +357,10 @@ export const AdminPanel: React.FC = () => {
       primaryMediaUrl: isCoverVideo ? (videoUrl || '') : (imagesList[0] || ''),
       videoUrl: videoUrl,
       images: imagesList.length > 0 ? imagesList : (videoUrl ? [videoUrl] : []),
+      colors: editingProduct.colors && editingProduct.colors.length > 0 ? editingProduct.colors : [{ name: 'Negro', hex: '#171717' }],
+      sizes: editingProduct.sizes && editingProduct.sizes.length > 0 ? editingProduct.sizes : ['S', 'M', 'L'],
+      colorImageMap: editingProduct.colorImageMap || {},
+      imageColorMap: editingProduct.imageColorMap || {},
     };
 
     updateProduct(updated);
@@ -254,21 +391,21 @@ export const AdminPanel: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto"
       onClick={() => setIsAdminOpen(false)}
     >
       <div
-        className="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#EDE4DA] my-auto flex flex-col"
+        className="bg-white sm:rounded-2xl max-w-4xl w-full min-h-screen sm:min-h-0 sm:max-h-[92vh] overflow-y-auto shadow-2xl border-0 sm:border border-[#EDE4DA] sm:my-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-5 border-b border-[#EDE4DA] flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="p-4 sm:p-5 border-b border-[#EDE4DA] flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#171717] rounded-lg text-[#C6A77D]">
+            <div className="p-2 bg-[#171717] rounded-lg text-[#C6A77D] shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-serif text-xl font-bold text-[#171717]">
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#171717]">
                 Panel de Administración Boutique
               </h2>
               <p className="text-xs text-[#77716C]">
@@ -277,16 +414,17 @@ export const AdminPanel: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-semibold rounded-full border border-emerald-200">
               <Cloud className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Base de Datos en la Nube Conectada</span>
+              <span>Base en la Nube Conectada</span>
               {isSyncing && <RefreshCw className="w-3 h-3 animate-spin text-emerald-600 ml-1" />}
             </div>
 
             <button
               onClick={() => setIsAdminOpen(false)}
-              className="p-2 text-[#77716C] hover:text-[#171717] rounded-full hover:bg-[#FAF8F5]"
+              className="w-11 h-11 flex items-center justify-center text-[#77716C] hover:text-[#171717] rounded-full hover:bg-[#FAF8F5] transition-colors"
+              aria-label="Cerrar panel de administración"
             >
               <X className="w-5 h-5" />
             </button>
@@ -341,8 +479,8 @@ export const AdminPanel: React.FC = () => {
           /* Authenticated Dashboard */
           <div className="flex-1 flex flex-col">
             {/* Nav Tabs */}
-            <div className="flex items-center justify-between border-b border-[#EDE4DA] bg-[#FAF8F5] px-6 text-xs font-semibold">
-              <div className="flex">
+            <div className="flex items-center justify-between border-b border-[#EDE4DA] bg-[#FAF8F5] px-3 sm:px-6 text-xs font-semibold overflow-x-auto whitespace-nowrap scrollbar-none">
+              <div className="flex shrink-0">
                 <button
                   onClick={() => {
                     setActiveTab('products');
@@ -645,6 +783,149 @@ export const AdminPanel: React.FC = () => {
                     />
                   </div>
 
+                  {/* Tallas Disponibles */}
+                  <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-2.5">
+                    <div>
+                      <span className="font-semibold text-xs text-[#171717] block">
+                        Tallas Disponibles para esta Prenda *
+                      </span>
+                      <p className="text-[11px] text-[#77716C]">
+                        Toca las tallas para activarlas o desactivarlas según el inventario disponible.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {STANDARD_SIZES.map((size) => {
+                        const isSelected = editingProduct.sizes?.includes(size);
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => toggleSize(size, true)}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                              isSelected
+                                ? 'bg-[#171717] text-white border-[#171717] shadow-xs'
+                                : 'bg-white text-[#77716C] border-[#EDE4DA] hover:border-[#171717]'
+                            }`}
+                          >
+                            {isSelected ? `✓ ${size}` : size}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Colores Disponibles */}
+                  <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-xs text-[#171717] block">
+                          Colores Disponibles de la Prenda *
+                        </span>
+                        <p className="text-[11px] text-[#77716C]">
+                          Agrega los colores en que existe esta prenda para luego asociar cada foto al color correspondiente.
+                        </p>
+                      </div>
+
+                      {/* Lista de colores actuales */}
+                      <span className="text-[11px] font-semibold text-[#C6A77D]">
+                        {editingProduct.colors.length} {editingProduct.colors.length === 1 ? 'color activo' : 'colores activos'}
+                      </span>
+                    </div>
+
+                    {/* Chips de colores actuales */}
+                    <div className="flex flex-wrap gap-2">
+                      {editingProduct.colors.map((c) => (
+                        <span
+                          key={c.name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-[#EDE4DA] rounded-lg text-xs font-semibold text-[#171717] shadow-2xs"
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/20"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          <span>{c.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeColorFromProduct(c.name, true)}
+                            className="p-0.5 text-[#77716C] hover:text-red-600 rounded"
+                            title={`Quitar color ${c.name}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Presets rápidos y creador personalizado */}
+                    <div className="pt-2 border-t border-[#EDE4DA] space-y-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-[#77716C] block">
+                        Agregar Colores Frecuentes:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_COLORS.map((preset) => {
+                          const alreadyAdded = editingProduct.colors.some(
+                            (c) => c.name.toLowerCase() === preset.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => addColorToProduct(preset, true)}
+                              disabled={alreadyAdded}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                                alreadyAdded
+                                  ? 'bg-[#EDE4DA]/40 text-[#77716C] border-transparent cursor-default'
+                                  : 'bg-white hover:bg-stone-50 text-[#171717] border-[#EDE4DA]'
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/15"
+                                style={{ backgroundColor: preset.hex }}
+                              />
+                              <span>+{preset.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Agregar Color Personalizado */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                        <div className="flex items-center gap-1.5 bg-white border border-[#EDE4DA] rounded-lg px-2 py-1">
+                          <input
+                            type="color"
+                            value={editCustomColorHex}
+                            onChange={(e) => setEditCustomColorHex(e.target.value)}
+                            className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                            title="Elegir tono exacto"
+                          />
+                          <input
+                            type="text"
+                            value={editCustomColorName}
+                            onChange={(e) => setEditCustomColorName(e.target.value)}
+                            placeholder="Nombre (ej. Magenta, Vino)"
+                            className="text-xs text-[#171717] border-0 focus:outline-none w-32"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editCustomColorName.trim()) {
+                              addColorToProduct(
+                                { name: editCustomColorName.trim(), hex: editCustomColorHex },
+                                true
+                              );
+                              setEditCustomColorName('');
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-[#171717] hover:bg-[#C6A77D] text-white text-xs font-semibold rounded-lg transition-colors"
+                        >
+                          Añadir Color
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Multimedia: Portada Principal Selector (Foto o Video) */}
                   <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EDE4DA] pb-3">
@@ -723,7 +1004,7 @@ export const AdminPanel: React.FC = () => {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  handleVideoFile(file, (url) =>
+                                   handleVideoFile(file, (url) =>
                                     setEditingProduct({
                                       ...editingProduct,
                                       videoUrl: url,
@@ -782,18 +1063,16 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Fotografías Adicionales / Galería */}
+                    {/* Fotografías Adicionales / Galería con Asociación de Color */}
                     <div className="space-y-3 pt-2">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <span className="font-semibold text-xs text-[#171717] flex items-center gap-1.5">
                             <ImageIcon className="w-4 h-4 text-[#C6A77D]" />
-                            <span>Galería de Fotos ({editingProduct.images.length})</span>
+                            <span>Galería de Fotos ({editingProduct.images.length}) & Asociación a Color</span>
                           </span>
                           <p className="text-[11px] text-[#77716C]">
-                            {editingProduct.coverMediaType === 'video'
-                              ? 'Fotos complementarias para el visor y la galería de la prenda.'
-                              : 'La primera foto de la lista se muestra como la portada principal.'}
+                            Puedes asignarle a cada foto el color de la prenda que muestra, para que al elegir ese color en la tienda cambie a esa foto automáticamente.
                           </p>
                         </div>
 
@@ -852,57 +1131,98 @@ export const AdminPanel: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Miniaturas de Fotos */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-1">
-                        {editingProduct.images.map((imgUrl, idx) => (
-                          <div
-                            key={idx}
-                            className="relative aspect-[3/4] rounded-lg overflow-hidden border border-[#EDE4DA] bg-white group shadow-2xs"
-                          >
-                            <img
-                              src={imgUrl}
-                              alt={`Foto ${idx + 1}`}
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover"
-                            />
-                            {idx === 0 && editingProduct.coverMediaType !== 'video' ? (
-                              <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold bg-[#171717] text-[#C6A77D] px-1.5 py-0.5 rounded shadow-xs">
-                                Portada
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newImgs = [...editingProduct.images];
-                                  const [selected] = newImgs.splice(idx, 1);
-                                  newImgs.unshift(selected);
-                                  setEditingProduct({
-                                    ...editingProduct,
-                                    images: newImgs,
-                                    coverMediaType: 'image',
-                                    primaryMediaUrl: selected,
-                                  });
-                                  showNotification('Foto establecida como portada principal');
-                                }}
-                                className="absolute top-1.5 left-1.5 z-10 text-[9px] font-medium bg-black/70 hover:bg-[#171717] text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                Hacer Portada
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const filtered = editingProduct.images.filter((_, i) => i !== idx);
-                                setEditingProduct({ ...editingProduct, images: filtered });
-                              }}
-                              className="absolute top-1.5 right-1.5 z-10 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-80 group-hover:opacity-100 transition-opacity"
-                              title="Eliminar foto"
+                      {/* Miniaturas de Fotos con Asignación de Color */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+                        {editingProduct.images.map((imgUrl, idx) => {
+                          const assignedColor = editingProduct.imageColorMap?.[imgUrl] || '';
+                          const assignedColorObj = editingProduct.colors.find(
+                            (c) => c.name.toLowerCase() === assignedColor.toLowerCase()
+                          );
+                          return (
+                            <div
+                              key={idx}
+                              className="rounded-lg border border-[#EDE4DA] bg-white overflow-hidden shadow-2xs flex flex-col justify-between"
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
+                              <div className="relative aspect-[3/4] w-full bg-stone-100 group">
+                                <img
+                                  src={imgUrl}
+                                  alt={`Foto ${idx + 1}`}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover"
+                                />
+                                {idx === 0 && editingProduct.coverMediaType !== 'video' ? (
+                                  <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold bg-[#171717] text-[#C6A77D] px-1.5 py-0.5 rounded shadow-xs">
+                                    Portada
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImgs = [...editingProduct.images];
+                                      const [selected] = newImgs.splice(idx, 1);
+                                      newImgs.unshift(selected);
+                                      setEditingProduct({
+                                        ...editingProduct,
+                                        images: newImgs,
+                                        coverMediaType: 'image',
+                                        primaryMediaUrl: selected,
+                                      });
+                                      showNotification('Foto establecida como portada principal');
+                                    }}
+                                    className="absolute top-1.5 left-1.5 z-10 text-[9px] font-medium bg-black/70 hover:bg-[#171717] text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    Hacer Portada
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const filtered = editingProduct.images.filter((_, i) => i !== idx);
+                                    const imgMap = { ...(editingProduct.imageColorMap || {}) };
+                                    delete imgMap[imgUrl];
+                                    setEditingProduct({
+                                      ...editingProduct,
+                                      images: filtered,
+                                      imageColorMap: imgMap,
+                                    });
+                                  }}
+                                  className="absolute top-1.5 right-1.5 z-10 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-80 group-hover:opacity-100 transition-opacity"
+                                  title="Eliminar foto"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+
+                              {/* Selector de Color para esta foto */}
+                              <div className="p-2 bg-[#FAF8F5] border-t border-[#EDE4DA] space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-semibold text-[#171717] flex items-center gap-1 truncate">
+                                    {assignedColorObj && (
+                                      <span
+                                        className="w-2.5 h-2.5 rounded-full inline-block border border-black/20 shrink-0"
+                                        style={{ backgroundColor: assignedColorObj.hex }}
+                                      />
+                                    )}
+                                    <span>Color de esta foto:</span>
+                                  </span>
+                                </div>
+                                <select
+                                  value={assignedColor}
+                                  onChange={(e) => assignColorToImage(imgUrl, e.target.value, true)}
+                                  className="w-full text-[11px] py-1 px-1.5 bg-white border border-[#EDE4DA] rounded font-medium text-[#171717] focus:border-[#C6A77D] focus:outline-none"
+                                >
+                                  <option value="">(Sin color / Foto general)</option>
+                                  {editingProduct.colors.map((c) => (
+                                    <option key={c.name} value={c.name}>
+                                      {c.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -1091,6 +1411,148 @@ export const AdminPanel: React.FC = () => {
                     />
                   </div>
 
+                  {/* Tallas Disponibles */}
+                  <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-2.5">
+                    <div>
+                      <span className="font-semibold text-xs text-[#171717] block">
+                        Tallas Disponibles para esta Prenda *
+                      </span>
+                      <p className="text-[11px] text-[#77716C]">
+                        Selecciona las tallas que tendrás disponibles en inventario.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {STANDARD_SIZES.map((size) => {
+                        const isSelected = newProd.sizes?.includes(size);
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => toggleSize(size, false)}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                              isSelected
+                                ? 'bg-[#171717] text-white border-[#171717] shadow-xs'
+                                : 'bg-white text-[#77716C] border-[#EDE4DA] hover:border-[#171717]'
+                            }`}
+                          >
+                            {isSelected ? `✓ ${size}` : size}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Colores Disponibles */}
+                  <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-xs text-[#171717] block">
+                          Colores Disponibles de la Prenda *
+                        </span>
+                        <p className="text-[11px] text-[#77716C]">
+                          Define los colores de esta prenda y luego podrás asociar cada foto que subas a su color exacto.
+                        </p>
+                      </div>
+
+                      <span className="text-[11px] font-semibold text-[#C6A77D]">
+                        {(newProd.colors || []).length} {((newProd.colors || []).length === 1) ? 'color activo' : 'colores activos'}
+                      </span>
+                    </div>
+
+                    {/* Chips de colores actuales */}
+                    <div className="flex flex-wrap gap-2">
+                      {(newProd.colors || []).map((c) => (
+                        <span
+                          key={c.name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-[#EDE4DA] rounded-lg text-xs font-semibold text-[#171717] shadow-2xs"
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/20"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          <span>{c.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeColorFromProduct(c.name, false)}
+                            className="p-0.5 text-[#77716C] hover:text-red-600 rounded"
+                            title={`Quitar color ${c.name}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Presets rápidos y creador personalizado */}
+                    <div className="pt-2 border-t border-[#EDE4DA] space-y-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-[#77716C] block">
+                        Agregar Colores Frecuentes:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_COLORS.map((preset) => {
+                          const alreadyAdded = (newProd.colors || []).some(
+                            (c) => c.name.toLowerCase() === preset.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => addColorToProduct(preset, false)}
+                              disabled={alreadyAdded}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                                alreadyAdded
+                                  ? 'bg-[#EDE4DA]/40 text-[#77716C] border-transparent cursor-default'
+                                  : 'bg-white hover:bg-stone-50 text-[#171717] border-[#EDE4DA]'
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/15"
+                                style={{ backgroundColor: preset.hex }}
+                              />
+                              <span>+{preset.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Agregar Color Personalizado */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                        <div className="flex items-center gap-1.5 bg-white border border-[#EDE4DA] rounded-lg px-2 py-1">
+                          <input
+                            type="color"
+                            value={newCustomColorHex}
+                            onChange={(e) => setNewCustomColorHex(e.target.value)}
+                            className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                            title="Elegir tono exacto"
+                          />
+                          <input
+                            type="text"
+                            value={newCustomColorName}
+                            onChange={(e) => setNewCustomColorName(e.target.value)}
+                            placeholder="Nombre (ej. Nude, Cobre)"
+                            className="text-xs text-[#171717] border-0 focus:outline-none w-32"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newCustomColorName.trim()) {
+                              addColorToProduct(
+                                { name: newCustomColorName.trim(), hex: newCustomColorHex },
+                                false
+                              );
+                              setNewCustomColorName('');
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-[#171717] hover:bg-[#C6A77D] text-white text-xs font-semibold rounded-lg transition-colors"
+                        >
+                          Añadir Color
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Multimedia: Portada Principal Selector (Foto o Video) */}
                   <div className="sm:col-span-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#EDE4DA] space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EDE4DA] pb-3">
@@ -1228,18 +1690,18 @@ export const AdminPanel: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Galería de Fotos */}
+                    {/* Galería de Fotos con Asociación a Color */}
                     <div className="space-y-3 pt-2">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <span className="font-semibold text-xs text-[#171717] flex items-center gap-1.5">
                             <ImageIcon className="w-4 h-4 text-[#C6A77D]" />
-                            <span>Fotografías de la Prenda ({newProd.images?.length || 0})</span>
+                            <span>Fotografías de la Prenda ({newProd.images?.length || 0}) & Color Asociado</span>
                           </span>
                           <p className="text-[11px] text-[#77716C]">
                             {newProd.coverMediaType === 'video'
-                              ? 'Fotos complementarias para la vista de detalle.'
-                              : 'La primera foto de la lista será la portada oficial.'}
+                              ? 'Fotos complementarias. Puedes asociar cada una al color que exhibe.'
+                              : 'La primera foto será la portada. Puedes asignarle a cada foto su color correspondiente.'}
                           </p>
                         </div>
 
@@ -1298,58 +1760,95 @@ export const AdminPanel: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Miniaturas */}
+                      {/* Miniaturas con Asignación de Color */}
                       {newProd.images && newProd.images.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-1">
-                          {newProd.images.map((imgUrl, idx) => (
-                            <div
-                              key={idx}
-                              className="relative aspect-[3/4] rounded-lg overflow-hidden border border-[#EDE4DA] bg-white group shadow-2xs"
-                            >
-                              <img
-                                src={imgUrl}
-                                alt={`Foto ${idx + 1}`}
-                                referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover"
-                              />
-                              {idx === 0 && newProd.coverMediaType !== 'video' ? (
-                                <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold bg-[#171717] text-[#C6A77D] px-1.5 py-0.5 rounded shadow-xs">
-                                  Portada
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const list = [...(newProd.images || [])];
-                                    const [picked] = list.splice(idx, 1);
-                                    list.unshift(picked);
-                                    setNewProd({
-                                      ...newProd,
-                                      images: list,
-                                      coverMediaType: 'image',
-                                      primaryMediaUrl: picked,
-                                    });
-                                    showNotification('Foto definida como portada');
-                                  }}
-                                  className="absolute top-1.5 left-1.5 z-10 text-[9px] font-medium bg-black/70 hover:bg-[#171717] text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  Hacer Portada
-                                </button>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const list = (newProd.images || []).filter((_, i) => i !== idx);
-                                  setNewProd({ ...newProd, images: list });
-                                }}
-                                className="absolute top-1.5 right-1.5 z-10 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-80 group-hover:opacity-100 transition-opacity"
-                                title="Eliminar foto"
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+                          {newProd.images.map((imgUrl, idx) => {
+                            const assignedColor = newProd.imageColorMap?.[imgUrl] || '';
+                            const assignedColorObj = (newProd.colors || []).find(
+                              (c) => c.name.toLowerCase() === assignedColor.toLowerCase()
+                            );
+                            return (
+                              <div
+                                key={idx}
+                                className="rounded-lg border border-[#EDE4DA] bg-white overflow-hidden shadow-2xs flex flex-col justify-between"
                               >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
+                                <div className="relative aspect-[3/4] w-full bg-stone-100 group">
+                                  <img
+                                    src={imgUrl}
+                                    alt={`Foto ${idx + 1}`}
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {idx === 0 && newProd.coverMediaType !== 'video' ? (
+                                    <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold bg-[#171717] text-[#C6A77D] px-1.5 py-0.5 rounded shadow-xs">
+                                      Portada
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const list = [...(newProd.images || [])];
+                                        const [picked] = list.splice(idx, 1);
+                                        list.unshift(picked);
+                                        setNewProd({
+                                          ...newProd,
+                                          images: list,
+                                          coverMediaType: 'image',
+                                          primaryMediaUrl: picked,
+                                        });
+                                        showNotification('Foto definida como portada');
+                                      }}
+                                      className="absolute top-1.5 left-1.5 z-10 text-[9px] font-medium bg-black/70 hover:bg-[#171717] text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      Hacer Portada
+                                    </button>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const list = (newProd.images || []).filter((_, i) => i !== idx);
+                                      const imgMap = { ...(newProd.imageColorMap || {}) };
+                                      delete imgMap[imgUrl];
+                                      setNewProd({ ...newProd, images: list, imageColorMap: imgMap });
+                                    }}
+                                    className="absolute top-1.5 right-1.5 z-10 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-80 group-hover:opacity-100 transition-opacity"
+                                    title="Eliminar foto"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                {/* Selector de Color para esta foto */}
+                                <div className="p-2 bg-[#FAF8F5] border-t border-[#EDE4DA] space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-semibold text-[#171717] flex items-center gap-1 truncate">
+                                      {assignedColorObj && (
+                                        <span
+                                          className="w-2.5 h-2.5 rounded-full inline-block border border-black/20 shrink-0"
+                                          style={{ backgroundColor: assignedColorObj.hex }}
+                                        />
+                                      )}
+                                      <span>Color de esta foto:</span>
+                                    </span>
+                                  </div>
+                                  <select
+                                    value={assignedColor}
+                                    onChange={(e) => assignColorToImage(imgUrl, e.target.value, false)}
+                                    className="w-full text-[11px] py-1 px-1.5 bg-white border border-[#EDE4DA] rounded font-medium text-[#171717] focus:border-[#C6A77D] focus:outline-none"
+                                  >
+                                    <option value="">(Sin color / Foto general)</option>
+                                    {(newProd.colors || []).map((c) => (
+                                      <option key={c.name} value={c.name}>
+                                        {c.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

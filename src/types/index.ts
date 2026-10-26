@@ -45,6 +45,8 @@ export interface Product {
   colors: GarmentColor[];
   sizes: GarmentSize[];
   inventory: InventoryVariant[];
+  colorImageMap?: Record<string, string>; // Maps color name to image URL
+  imageColorMap?: Record<string, string>; // Maps image URL to color name
   material: string;
   composition: string;
   careInstructions: string[];

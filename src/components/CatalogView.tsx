@@ -146,37 +146,37 @@ export const CatalogView: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#EDE4DA]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-[#EDE4DA]">
           <div>
             <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#C6A77D] font-semibold mb-1">
               <span>Boutique Lookbook</span>
               <span aria-hidden="true">·</span>
               <span>Confección Exclusiva</span>
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#171717]">
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-[#171717]">
               Catálogo de Prendas
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Filter Count & Reset */}
             {hasActiveFilters && (
               <button
                 onClick={resetAllFilters}
-                className="flex items-center gap-1.5 text-xs text-[#77716C] hover:text-[#171717] underline transition-colors"
+                className="flex items-center gap-1.5 text-xs text-[#77716C] hover:text-[#171717] underline transition-colors py-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Limpiar filtros</span>
+                <span>Limpiar</span>
               </button>
             )}
 
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-              className="lg:hidden flex items-center gap-2 px-3.5 py-2 bg-white border border-[#EDE4DA] rounded-lg text-xs font-semibold text-[#171717]"
+              className="lg:hidden min-h-[40px] flex items-center gap-2 px-3.5 py-2 bg-white border border-[#EDE4DA] rounded-lg text-xs font-semibold text-[#171717] shadow-2xs active:bg-[#FAF8F5]"
             >
               <SlidersHorizontal className="w-4 h-4 text-[#C6A77D]" />
-              <span>Filtros</span>
+              <span>{mobileFiltersOpen ? 'Ocultar Filtros' : 'Filtros'}</span>
             </button>
 
             {/* Sorting Dropdown */}
@@ -184,7 +184,7 @@ export const CatalogView: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-white border border-[#EDE4DA] rounded-lg text-xs font-medium text-[#171717] py-2 pl-3 pr-8 focus:outline-hidden focus:border-[#C6A77D]"
+                className="min-h-[40px] bg-white border border-[#EDE4DA] rounded-lg text-xs font-medium text-[#171717] py-2 pl-3 pr-8 focus:outline-hidden focus:border-[#C6A77D]"
               >
                 <option value="featured">Novedades & Destacados</option>
                 <option value="price-asc">Precio: Menor a Mayor</option>
@@ -195,15 +195,15 @@ export const CatalogView: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Tab Strip (Clean unboxed/segmented interactive buttons) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {/* Categories Tab Strip (Clean unboxed/segmented interactive buttons with edge-to-edge scroll on mobile) */}
+        <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {CATEGORIES_LIST.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id as CategoryId)}
-                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
+                className={`min-h-[40px] px-4 py-2 rounded-xl sm:rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0 active:scale-[0.98] ${
                   isActive
                     ? 'bg-[#171717] text-white shadow-xs font-semibold'
                     : 'bg-white hover:bg-[#F8F5F0] text-[#77716C] hover:text-[#171717] border border-[#EDE4DA]'
@@ -215,12 +215,12 @@ export const CatalogView: React.FC = () => {
           })}
         </div>
 
-        {/* Layout: Sidebar Filters (Desktop) + Product Grid */}
+        {/* Layout: Sidebar Filters (Desktop/Mobile) + Product Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Desktop Filter Sidebar */}
+          {/* Filter Sidebar */}
           <aside
-            className={`lg:col-span-3 bg-white p-5 rounded-xl border border-[#EDE4DA] space-y-6 ${
+            className={`lg:col-span-3 bg-white p-5 rounded-2xl border border-[#EDE4DA] space-y-6 ${
               mobileFiltersOpen ? 'block' : 'hidden lg:block'
             }`}
           >
@@ -228,14 +228,24 @@ export const CatalogView: React.FC = () => {
               <span className="font-serif text-sm font-bold text-[#171717]">
                 Filtrar Selección
               </span>
-              {hasActiveFilters && (
-                <button
-                  onClick={resetAllFilters}
-                  className="text-[11px] text-[#C6A77D] hover:underline"
-                >
-                  Restablecer
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {hasActiveFilters && (
+                  <button
+                    onClick={resetAllFilters}
+                    className="text-[11px] text-[#C6A77D] hover:underline"
+                  >
+                    Restablecer
+                  </button>
+                )}
+                {mobileFiltersOpen && (
+                  <button
+                    onClick={() => setMobileFiltersOpen(false)}
+                    className="lg:hidden text-xs text-[#171717] font-semibold bg-[#FAF8F5] px-2.5 py-1 rounded border border-[#EDE4DA]"
+                  >
+                    Cerrar
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Size Filter */}

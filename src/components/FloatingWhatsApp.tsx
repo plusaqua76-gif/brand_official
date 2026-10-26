@@ -20,7 +20,7 @@ export const FloatingWhatsApp: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom,16px))] right-3 sm:right-6 z-30 flex flex-col items-end gap-2">
       {/* Tooltip bubble on desktop */}
       {tooltipOpen && (
         <div className="hidden sm:flex items-center gap-2 bg-white text-[#171717] px-3.5 py-2 rounded-xl shadow-xl border border-[#EDE4DA] text-xs font-medium animate-fade-in">
@@ -38,11 +38,11 @@ export const FloatingWhatsApp: React.FC = () => {
       {/* Floating Button */}
       <button
         onClick={handleClick}
-        className="w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#20BA5A] text-white flex items-center justify-center shadow-2xl transition-transform hover:scale-110 focus:outline-hidden"
+        className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#25D366] hover:bg-[#20BA5A] text-white flex items-center justify-center shadow-2xl transition-transform hover:scale-110 active:scale-95 focus:outline-hidden"
         aria-label="Contactar por WhatsApp"
         title="Contactar a la boutique por WhatsApp"
       >
-        <MessageCircle className="w-7 h-7 fill-white" />
+        <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 fill-white" />
       </button>
     </div>
   );

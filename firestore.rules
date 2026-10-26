@@ -27,6 +27,8 @@ service cloud.firestore {
         && (!('isSale' in data) || data.isSale is bool)
         && (!('isBestseller' in data) || data.isBestseller is bool)
         && (!('originalPrice' in data) || data.originalPrice == null || data.originalPrice is number)
+        && (!('colorImageMap' in data) || data.colorImageMap is map)
+        && (!('imageColorMap' in data) || data.imageColorMap is map)
         && (!('material' in data) || data.material is string)
         && (!('composition' in data) || data.composition is string);
     }

@@ -33,4 +33,29 @@
 html {
   scroll-behavior: smooth;
   font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area insets for mobile notched devices */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+}
+
+/* Hide scrollbars while allowing touch scrolling */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

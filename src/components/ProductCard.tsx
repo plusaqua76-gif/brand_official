@@ -21,6 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
 
   const [isHovered, setIsHovered] = useState(false);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [selectedColorImage, setSelectedColorImage] = useState<string | null>(null);
   const [justAdded, setJustAdded] = useState(false);
 
   const discount = calculateDiscount(product.price, product.originalPrice);
@@ -38,12 +39,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
   const secondaryImage = product.images?.[1] || product.images?.[0] || '';
   const currentImage = isHovered && product.images && product.images.length > 1 ? secondaryImage : mainImage;
 
+  // Find image assigned to a color
+  const findColorImage = (colorName: string): string | null => {
+    if (product.colorImageMap && product.colorImageMap[colorName]) {
+      return product.colorImageMap[colorName];
+    }
+    if (product.imageColorMap) {
+      const entry = Object.entries(product.imageColorMap).find(
+        ([_, name]) => name.toLowerCase() === colorName.toLowerCase()
+      );
+      if (entry) return entry[0];
+    }
+    return null;
+  };
+
   const handleCardClick = () => {
     addRecentlyViewed(product);
     if (onOpenDetail) {
       onOpenDetail(product);
     } else {
       setSelectedProduct(product);
+    }
+  };
+
+  const handleColorClick = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    setSelectedColorIndex(idx);
+    const color = product.colors[idx];
+    if (color) {
+      const matched = findColorImage(color.name);
+      if (matched) {
+        setSelectedColorImage(matched);
+      }
     }
   };
 
@@ -73,6 +100,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
     toggleWishlist(product.id);
   };
 
+  // Determine media to render:
+  // 1. If user clicked a color that has a photo, show that photo!
+  // 2. Otherwise if cover is video, play video.
+  // 3. Otherwise show standard image gallery preview.
+  const displayedImage = selectedColorImage || currentImage;
+  const showVideo = !selectedColorImage && isCoverVideo && Boolean(coverVideoSrc);
+
   return (
     <div
       onClick={handleCardClick}
@@ -82,7 +116,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
     >
       {/* Product Image / Video Stage */}
       <div className="relative aspect-[3/4] w-full bg-[#FAF8F5] overflow-hidden">
-        {isCoverVideo && coverVideoSrc ? (
+        {showVideo ? (
           <video
             src={coverVideoSrc}
             autoPlay
@@ -93,7 +127,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
           />
         ) : (
           <img
-            src={currentImage || '/src/assets/images/fashion_enterizo_black_1792782858876.jpg'}
+            src={displayedImage || '/src/assets/images/fashion_enterizo_black_1792782858876.jpg'}
             alt={product.name}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-104"
@@ -134,22 +168,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
           </div>
         )}
 
-        {/* Wishlist Heart Toggle */}
+        {/* Wishlist Heart Toggle (44x44px touch target) */}
         <button
+          type="button"
           onClick={handleWishlist}
-          className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-xs transition-colors ${
+          className={`absolute top-2.5 right-2.5 z-10 w-11 h-11 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-2xs ${
             isFavorite
               ? 'bg-red-50 text-red-600 shadow-xs'
-              : 'bg-white/80 text-[#77716C] hover:text-red-600 hover:bg-white'
+              : 'bg-white/85 text-[#77716C] hover:text-red-600 hover:bg-white active:scale-90'
           }`}
           aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Quick View & Quick Add Action Bar (Slide-up on hover) */}
+        {/* Quick View & Quick Add Action Bar (Desktop Hover) */}
         <div className="absolute inset-x-3 bottom-3 z-10 hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
+            type="button"
             onClick={handleQuickView}
             className="flex-1 py-2.5 bg-white/95 hover:bg-white text-[#171717] text-xs font-semibold uppercase tracking-wider rounded shadow-md transition-colors flex items-center justify-center gap-1.5"
             title="Vista rápida"
@@ -159,6 +195,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
           </button>
 
           <button
+            type="button"
             onClick={handleQuickAdd}
             disabled={isSoldOut}
             className={`p-2.5 rounded shadow-md transition-colors ${
@@ -202,26 +239,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetail 
 
         {/* Available Color Swatches */}
         {product.colors && product.colors.length > 0 && (
-          <div className="flex items-center gap-1.5 pt-0.5">
+          <div className="flex items-center gap-1 pt-0.5">
             {product.colors.map((c, idx) => (
               <button
                 key={c.name}
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedColorIndex(idx);
-                }}
-                className={`w-3.5 h-3.5 rounded-full border transition-transform ${
-                  selectedColorIndex === idx
-                    ? 'scale-125 border-[#171717] ring-1 ring-[#171717]/20'
-                    : 'border-black/20 hover:scale-110'
+                onClick={(e) => handleColorClick(e, idx)}
+                className={`p-1 rounded-full flex items-center justify-center transition-transform active:scale-90 ${
+                  selectedColorIndex === idx ? 'scale-110' : ''
                 }`}
-                style={{ backgroundColor: c.hex }}
                 title={c.name}
                 aria-label={c.name}
-              />
+              >
+                <span
+                  className={`w-3.5 h-3.5 rounded-full border block ${
+                    selectedColorIndex === idx
+                      ? 'border-[#171717] ring-2 ring-[#C6A77D]'
+                      : 'border-black/20'
+                  }`}
+                  style={{ backgroundColor: c.hex }}
+                />
+              </button>
             ))}
-            <span className="text-[11px] text-[#77716C] ml-1">
+            <span className="text-[11px] text-[#77716C] ml-1 truncate">
               {product.colors[selectedColorIndex]?.name}
             </span>
           </div>

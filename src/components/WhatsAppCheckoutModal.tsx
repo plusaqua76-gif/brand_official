@@ -108,21 +108,21 @@ export const WhatsAppCheckoutModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto"
       onClick={() => setIsCheckoutModalOpen(false)}
     >
       <div
-        className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#EDE4DA] my-auto"
+        className="bg-white sm:rounded-2xl max-w-2xl w-full min-h-screen sm:min-h-0 sm:max-h-[92vh] overflow-y-auto shadow-2xl border-0 sm:border border-[#EDE4DA] sm:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-6 border-b border-[#EDE4DA] flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="p-4 sm:p-6 border-b border-[#EDE4DA] flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366]">
+            <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] shrink-0">
               <MessageCircle className="w-5 h-5 fill-current" />
             </div>
             <div>
-              <h2 className="font-serif text-xl font-bold text-[#171717]">
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#171717]">
                 Finalizar Pedido por WhatsApp
               </h2>
               <p className="text-xs text-[#77716C]">
@@ -133,7 +133,8 @@ export const WhatsAppCheckoutModal: React.FC = () => {
 
           <button
             onClick={() => setIsCheckoutModalOpen(false)}
-            className="p-2 text-[#77716C] hover:text-[#171717] rounded-full hover:bg-[#FAF8F5] transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-[#77716C] hover:text-[#171717] rounded-full hover:bg-[#FAF8F5] transition-colors"
+            aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -189,7 +190,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                         setCustomerInfo((prev) => ({ ...prev, fullName: e.target.value }))
                       }
                       placeholder="Ej. Carolina Gómez"
-                      className={`w-full pl-9 pr-3 py-2.5 text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
+                      className={`w-full pl-9 pr-3 py-2.5 text-base sm:text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
                         formErrors.fullName
                           ? 'border-red-500 focus:border-red-500'
                           : 'border-[#EDE4DA] focus:border-[#C6A77D]'
@@ -209,7 +210,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                     Número de Celular / WhatsApp *
                   </label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-[#77716C] absolute left-3 top-3 pointer-events-none" />
+                    <Phone className="w-4 h-4 text-[#77716C] absolute left-3 top-3.5 pointer-events-none" />
                     <input
                       type="tel"
                       value={customerInfo.phone}
@@ -217,7 +218,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                         setCustomerInfo((prev) => ({ ...prev, phone: e.target.value }))
                       }
                       placeholder="Ej. 310 123 4567"
-                      className={`w-full pl-9 pr-3 py-2.5 text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
+                      className={`w-full pl-9 pr-3 py-2.5 text-base sm:text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
                         formErrors.phone
                           ? 'border-red-500 focus:border-red-500'
                           : 'border-[#EDE4DA] focus:border-[#C6A77D]'
@@ -241,7 +242,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                     onChange={(e) =>
                       setCustomerInfo((prev) => ({ ...prev, department: e.target.value }))
                     }
-                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
+                    className="w-full px-3 py-2.5 text-base sm:text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
                   >
                     {COLOMBIA_DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept}>
@@ -257,7 +258,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                     Ciudad o Municipio *
                   </label>
                   <div className="relative">
-                    <MapPin className="w-4 h-4 text-[#77716C] absolute left-3 top-3 pointer-events-none" />
+                    <MapPin className="w-4 h-4 text-[#77716C] absolute left-3 top-3.5 pointer-events-none" />
                     <input
                       type="text"
                       value={customerInfo.city}
@@ -265,7 +266,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                         setCustomerInfo((prev) => ({ ...prev, city: e.target.value }))
                       }
                       placeholder="Ej. Bogotá, Medellín, Neiva..."
-                      className={`w-full pl-9 pr-3 py-2.5 text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
+                      className={`w-full pl-9 pr-3 py-2.5 text-base sm:text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
                         formErrors.city
                           ? 'border-red-500 focus:border-red-500'
                           : 'border-[#EDE4DA] focus:border-[#C6A77D]'
@@ -285,7 +286,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                     Dirección de entrega *
                   </label>
                   <div className="relative">
-                    <Home className="w-4 h-4 text-[#77716C] absolute left-3 top-3 pointer-events-none" />
+                    <Home className="w-4 h-4 text-[#77716C] absolute left-3 top-3.5 pointer-events-none" />
                     <input
                       type="text"
                       value={customerInfo.address}
@@ -293,7 +294,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                         setCustomerInfo((prev) => ({ ...prev, address: e.target.value }))
                       }
                       placeholder="Ej. Carrera 15 # 85 - 20, Apto 402"
-                      className={`w-full pl-9 pr-3 py-2.5 text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
+                      className={`w-full pl-9 pr-3 py-2.5 text-base sm:text-xs bg-white border rounded-lg focus:outline-hidden transition-colors ${
                         formErrors.address
                           ? 'border-red-500 focus:border-red-500'
                           : 'border-[#EDE4DA] focus:border-[#C6A77D]'
@@ -319,7 +320,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                       setCustomerInfo((prev) => ({ ...prev, neighborhood: e.target.value }))
                     }
                     placeholder="Ej. Chicó Norte / Cerca al parque"
-                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
+                    className="w-full px-3 py-2.5 text-base sm:text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
                   />
                 </div>
 
@@ -335,7 +336,7 @@ export const WhatsAppCheckoutModal: React.FC = () => {
                       setCustomerInfo((prev) => ({ ...prev, observations: e.target.value }))
                     }
                     placeholder="Ej. Consultar ajuste de ruedo / Fecha límite evento"
-                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
+                    className="w-full px-3 py-2.5 text-base sm:text-xs bg-white border border-[#EDE4DA] rounded-lg focus:outline-hidden focus:border-[#C6A77D]"
                   />
                 </div>
               </div>
