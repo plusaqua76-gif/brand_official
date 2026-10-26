@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ArrowUpRight, Sparkles, Truck, ShieldCheck, HeartHandshake } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ASSET_IMAGES } from '../data/initialProducts';
 
 export const Hero: React.FC = () => {
   const { setActiveCategory } = useStore();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Fallback for browsers with strict gesture policies
+        const resumePlayback = () => {
+          videoRef.current?.play().catch(() => {});
+          window.removeEventListener('click', resumePlayback);
+          window.removeEventListener('touchstart', resumePlayback);
+        };
+        window.addEventListener('click', resumePlayback, { once: true });
+        window.addEventListener('touchstart', resumePlayback, { once: true });
+      });
+    }
+  }, []);
 
   const handleExplore = () => {
     const el = document.getElementById('catalogo');
@@ -91,34 +107,57 @@ export const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Hero High-Resolution Fashion Editorial Image */}
+          {/* Right Column: Hero High-Resolution Fashion Editorial Video */}
           <div className="lg:col-span-6 relative">
-            <div className="relative mx-auto max-w-lg lg:max-w-none rounded-2xl overflow-hidden shadow-2xl border border-[#EDE4DA] bg-[#EDE4DA]/40 group">
-              <img
-                src={ASSET_IMAGES.hero}
-                alt="Colección Cirleni Hernández Brand Official"
-                referrerPolicy="no-referrer"
-                className="w-full h-[460px] sm:h-[540px] md:h-[600px] object-cover object-center transition-transform duration-700 group-hover:scale-102"
+            <div className="relative mx-auto max-w-lg lg:max-w-none rounded-2xl overflow-hidden shadow-2xl border border-[#EDE4DA] bg-black group">
+              <video
+                ref={videoRef}
+                src="/videos/hero_cirleni_reel.mp4"
+                poster={ASSET_IMAGES.hero}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                disableRemotePlayback
+                onPause={(e) => {
+                  // Ensure nobody can pause the video; resume immediately
+                  e.currentTarget.play().catch(() => {});
+                }}
+                onEnded={(e) => {
+                  e.currentTarget.play().catch(() => {});
+                }}
+                className="w-full h-[460px] sm:h-[540px] md:h-[600px] object-cover object-center pointer-events-none select-none transition-transform duration-700 group-hover:scale-102"
               />
               
               {/* Subtle Luxury Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30 pointer-events-none" />
+
+              {/* Showroom Badge */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-white/20 text-white text-[11px] font-semibold pointer-events-none select-none">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C6A77D] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C6A77D]"></span>
+                </span>
+                <span className="uppercase tracking-widest text-[10px] text-[#EDE4DA]">Cirleni Hernández Showroom</span>
+              </div>
 
               {/* Floating Editorial Label Tag */}
               <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/95 backdrop-blur-md rounded-xl border border-white/40 shadow-lg flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase tracking-widest text-[#C6A77D] font-bold block">
-                    Nueva Colección
+                    Showroom Oficial & Pasarela
                   </span>
                   <p className="font-serif text-base sm:text-lg font-semibold text-[#171717]">
-                    Enterizo Palazzo & Sastrería de Lujo
+                    Prendas Exclusivas en Movimiento
                   </p>
                 </div>
                 <button
                   onClick={handleShopEnterizos}
                   className="px-3.5 py-1.5 bg-[#171717] text-white text-xs uppercase tracking-wider font-medium rounded hover:bg-[#C6A77D] transition-colors"
                 >
-                  Ver
+                  Ver Colección
                 </button>
               </div>
             </div>
