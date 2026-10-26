@@ -1,11 +1,23 @@
-import React, { useRef, useEffect } from 'react';
-import { ArrowUpRight, Sparkles, Truck, ShieldCheck, HeartHandshake } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { ArrowUpRight, Sparkles, Truck, ShieldCheck, HeartHandshake, Volume2, VolumeX } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ASSET_IMAGES } from '../data/initialProducts';
 
 export const Hero: React.FC = () => {
   const { setActiveCategory } = useStore();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      const nextMuted = !isMuted;
+      videoRef.current.muted = nextMuted;
+      setIsMuted(nextMuted);
+      // Ensure video continues playing
+      videoRef.current.play().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     if (videoRef.current) {
@@ -109,14 +121,14 @@ export const Hero: React.FC = () => {
 
           {/* Right Column: Hero High-Resolution Fashion Editorial Video */}
           <div className="lg:col-span-6 relative">
-            <div className="relative mx-auto max-w-lg lg:max-w-none rounded-2xl overflow-hidden shadow-2xl border border-[#EDE4DA] bg-black group">
+            <div className="relative mx-auto max-w-lg lg:max-w-none rounded-2xl overflow-hidden shadow-2xl border border-[#EDE4DA] bg-black group aspect-[3/4] max-h-[620px]">
               <video
                 ref={videoRef}
                 src="/videos/hero_cirleni_reel.mp4"
-                poster={ASSET_IMAGES.hero}
+                poster="/videos/hero_poster.jpg"
                 autoPlay
                 loop
-                muted
+                muted={isMuted}
                 playsInline
                 preload="auto"
                 disablePictureInPicture
@@ -128,7 +140,7 @@ export const Hero: React.FC = () => {
                 onEnded={(e) => {
                   e.currentTarget.play().catch(() => {});
                 }}
-                className="w-full h-[460px] sm:h-[540px] md:h-[600px] object-cover object-center pointer-events-none select-none transition-transform duration-700 group-hover:scale-102"
+                className="w-full h-full object-cover object-center pointer-events-none select-none transition-transform duration-700 group-hover:scale-102"
               />
               
               {/* Subtle Luxury Gradient Overlay */}
@@ -142,6 +154,26 @@ export const Hero: React.FC = () => {
                 </span>
                 <span className="uppercase tracking-widest text-[10px] text-[#EDE4DA]">Cirleni Hernández Showroom</span>
               </div>
+
+              {/* Sound Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleSound}
+                aria-label={isMuted ? 'Activar sonido del video' : 'Silenciar sonido del video'}
+                className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full border border-white/20 text-white text-[11px] font-medium transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                {isMuted ? (
+                  <>
+                    <VolumeX className="w-3.5 h-3.5 text-[#C6A77D]" />
+                    <span className="text-[10px] uppercase tracking-wider text-[#EDE4DA]">Sonido</span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-3.5 h-3.5 text-[#C6A77D] animate-pulse" />
+                    <span className="text-[10px] uppercase tracking-wider text-[#EDE4DA]">Silenciar</span>
+                  </>
+                )}
+              </button>
 
               {/* Floating Editorial Label Tag */}
               <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/95 backdrop-blur-md rounded-xl border border-white/40 shadow-lg flex items-center justify-between">

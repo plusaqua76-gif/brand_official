@@ -12,7 +12,7 @@ export const BrandStory: React.FC = () => {
           <div className="lg:col-span-6 relative">
             <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#EDE4DA] aspect-[4/3] sm:aspect-[16/10]">
               <img
-                src={ASSET_IMAGES.conjuntoMarfil}
+                src="/assets/aistudio/imgdownloader-080c057c_9fa09d13.jpeg"
                 alt="Confección y esencia Cirleni Hernández"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
